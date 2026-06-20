@@ -13,3 +13,6 @@ config
 
 # internal hand-off journal (kept local, not published)
 CHANGES.log
+
+# menu-bar app bundle (built by install-menubar.sh)
+GarminVoiceMemos.app/

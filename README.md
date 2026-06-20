@@ -30,14 +30,23 @@ that is famously flaky on a Mac. This tool makes it reliable and hands-off.
 ```sh
 git clone https://github.com/Anneo22/garmin-voice-export.git
 cd garmin-voice-export
-brew install gphoto2
-bin/install-autorun.sh        # builds the watcher and installs the on-connect agent
+./install.sh
 ```
 
-That's it. Plug in your watch; new memos appear in `~/Documents/Voice Memos` and you
-get a notification.
+`install.sh` installs dependencies (`gphoto2`, `terminal-notifier`), asks where to
+save memos and whether to delete them from the watch, and sets up the on-connect
+importer. It can also set up transcription and the menu-bar app.
 
-To remove the agent: `bin/uninstall-autorun.sh`.
+That's it. Plug in your watch; new memos appear in your folder and you get a
+clickable notification. To remove the agent: `bin/uninstall-autorun.sh`.
+
+### Menu-bar app (optional)
+
+```sh
+bin/install-menubar.sh
+```
+Adds a menu-bar item with live status and one-click **Sync now**, **Open folder**,
+and **Pause** (free the watch for other apps).
 
 ## Usage
 
