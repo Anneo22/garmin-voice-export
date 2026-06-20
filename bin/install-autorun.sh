@@ -44,7 +44,8 @@ cat > "$PLIST" <<PLIST
   <key>ProgramArguments</key>
   <array>
     <string>$WATCHER_BIN</string>
-    <string>$EXPORT</string>$( [ -n "$DELETE_FLAG" ] && printf '\n    <string>%s</string>' "$DELETE_FLAG" )
+    <string>$EXPORT</string>
+    <string>--auto</string>$( [ -n "$DELETE_FLAG" ] && printf '\n    <string>%s</string>' "$DELETE_FLAG" )
   </array>
   <key>EnvironmentVariables</key>
   <dict>

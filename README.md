@@ -65,7 +65,8 @@ see `config.example`). Sensible defaults mean you usually need none.
 | `GARMIN_VOICE_DEST` | `~/Documents/Voice Memos` | Where memos are saved |
 | `GARMIN_VOICE_DELETE` | unset | Set to `--delete` to remove from the watch (agent) |
 | `GARMIN_VOICE_SUBPATH` | `GARMIN/Audio/VoiceNotes` | On-watch folder (override if a model differs) |
-| `GARMIN_VOICE_REGEX` | `VoiceNotes[0-9]+\.wav` | Which files count as voice notes |
+| `GARMIN_VOICE_REGEX` | `VoiceNotes[0-9]+\.wav` | Which files count as voice notes (`[0-9]+` matches any number — 6, 12, 100) |
+| `GVE_NAME_FORMAT` | `%Y-%m-%d_%H-%M-%S` | Filename format — a `date` format string (see Naming) |
 | `GVE_TRANSCRIBE` | `0` | `1` to transcribe each new memo |
 | `GVE_TRANSCRIBE_BACKEND` | `parakeet` | `parakeet` \| `whisper` \| `openai` \| `gemini` \| `groq` \| `deepgram` |
 | `GVE_OBSIDIAN_VAULT` | unset | Path to a vault folder to also write each memo as a note |
@@ -91,13 +92,44 @@ bin/install-transcription.sh         # interactive: pick local (MLX) or a cloud 
 Each memo gets a `.txt` next to its `.wav`. With `GVE_OBSIDIAN_VAULT` set, it also
 becomes a note (transcript + recording date + linked audio).
 
+## Naming
+
+Files are named from each note's recording time via `GVE_NAME_FORMAT`, a `date`
+format string. Examples:
+
+| `GVE_NAME_FORMAT` | Result |
+|---|---|
+| `%Y-%m-%d_%H-%M-%S` (default) | `2026-06-17_12-25-40.wav` |
+| `%Y%m%d-%H%M` | `20260617-1225.wav` |
+| `Memo %Y-%m-%d %H.%M` | `Memo 2026-06-17 12.25.wav` |
+| `%Y/%m/%Y-%m-%d_%H-%M-%S` | `2026/06/2026-06-17_12-25-40.wav` (organised into year/month subfolders) |
+
 ## Deleting from the watch
 
-Deletion is opt-in. Note that removing a `.wav` over USB frees the audio but cannot
-update the watch's voice-note **library index**, which is not accessible over USB — so
-the watch may keep showing an entry that no longer plays until it rebuilds its library
-(typically on reboot). The fully clean way to clear notes is from the watch itself.
-When `--delete` is used, a note is removed only after a verified local copy exists.
+Deletion is opt-in (`--delete`). One caveat to understand: removing a `.wav` over USB
+frees the audio immediately, but the watch's voice-note **library index** isn't
+accessible over USB, so the watch keeps showing a now-empty entry (it won't play)
+**until the watch rebuilds its library, which it does on reboot.** In practice:
+delete via this tool, and the entries disappear after the next watch restart. The
+fully clean alternative is to delete notes from the watch's own UI. When `--delete`
+is used, a note is removed from the watch only after a verified local copy exists.
+
+## Pausing / freeing the watch for other apps
+
+This tool grabs the watch's USB connection to import. To use Garmin Express, OpenMTP,
+or any other MTP app, free the watch with `garmin-voice`:
+
+```sh
+bin/garmin-voice pause     # turn auto-import OFF and release the watch (survives reconnects)
+bin/garmin-voice resume    # turn it back ON
+bin/garmin-voice free      # one-shot: release the watch right now (e.g. "the Mac won't see it")
+bin/garmin-voice status    # show current state
+bin/garmin-voice sync      # run an import now (accepts --delete etc.)
+```
+
+`free` is handy for Garmin's notoriously finicky USB connection: it kills every
+process holding the device (this tool, leftover `gphoto2`, the macOS `PTPCamera`
+daemon) so the next app you open connects cleanly.
 
 ## How it works
 

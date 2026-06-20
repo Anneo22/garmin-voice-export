@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# garmin-voice — control the auto-importer and free the watch for other apps.
+#
+#   garmin-voice pause     turn auto-import OFF and release the watch (for Garmin
+#                          Express, OpenMTP, etc.). Survives reconnects until 'resume'.
+#   garmin-voice resume    turn auto-import back ON.
+#   garmin-voice free       release the watch from this tool + macOS PTPCamera RIGHT NOW
+#                          (one-shot; doesn't change pause state). Use when "the Mac
+#                          won't see the watch" — run this, then open your app.
+#   garmin-voice sync [...] run an import now (passes flags like --delete to the importer).
+#   garmin-voice status    show current state.
+
+set -uo pipefail
+SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
+EXPORT="$SELF_DIR/export-voice-notes.sh"
+LABEL="com.garminvoice.watcher"
+UID_NUM="$(id -u)"
+PAUSE_FLAG="${GVE_PAUSE_FLAG:-$HOME/.config/garmin-voice-export/paused}"
+GVE_CONFIG="${GVE_CONFIG:-$HOME/.config/garmin-voice-export/config}"
+DEST="${GARMIN_VOICE_DEST:-$HOME/Documents/Voice Memos}"
+[ -f "$GVE_CONFIG" ] && . "$GVE_CONFIG"
+mkdir -p "$(dirname "$PAUSE_FLAG")"
+
+# release every process that holds the watch's single USB interface
+free_device(){
+  pkill -9 -f "export-voice-notes.sh" 2>/dev/null
+  pkill -9 -x gphoto2 2>/dev/null
+  killall PTPCamera 2>/dev/null
+  rm -rf /tmp/garmin_voice_export.lock 2>/dev/null
+}
+
+case "${1:-status}" in
+  pause|off|stop)
+    touch "$PAUSE_FLAG"; free_device
+    echo "⏸  Auto-import PAUSED and the watch released."
+    echo "   It stays free across reconnects — Garmin Express / OpenMTP / MTP tools will see it."
+    echo "   Re-enable with:  garmin-voice resume" ;;
+  resume|on|start)
+    rm -f "$PAUSE_FLAG"
+    echo "▶  Auto-import RESUMED. New memos import on the next connect." ;;
+  free|release|fix)
+    free_device
+    echo "✓  Released the watch from this tool and macOS PTPCamera."
+    echo "   Open Garmin Express / your MTP app now — it should connect."
+    echo "   (One-shot. To keep it free across reconnects use:  garmin-voice pause)" ;;
+  sync|now)
+    shift; free_device; sleep 1; exec "$EXPORT" "$@" ;;
+  status)
+    echo "Garmin Voice Memos — status"
+    echo "  auto-import : $([ -f "$PAUSE_FLAG" ] && echo 'PAUSED' || echo 'active')"
+    if launchctl print "gui/$UID_NUM/$LABEL" >/dev/null 2>&1; then echo "  watcher     : installed (instant on-connect)"; else echo "  watcher     : not installed (run bin/install-autorun.sh)"; fi
+    echo "  destination : $DEST"
+    echo "  delete-from-watch: $([ -n "${GARMIN_VOICE_DELETE:-}" ] && echo 'on' || echo 'off (export only)')"
+    echo "  transcription    : $([ "${GVE_TRANSCRIBE:-0}" = 1 ] && echo "on (${GVE_TRANSCRIBE_BACKEND:-parakeet})" || echo 'off')" ;;
+  -h|--help|help)
+    grep '^#' "$0" | sed 's/^# \{0,1\}//' ;;
+  *) echo "usage: garmin-voice {pause|resume|free|sync|status}" >&2; exit 2 ;;
+esac

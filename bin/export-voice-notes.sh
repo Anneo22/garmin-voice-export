@@ -41,7 +41,7 @@ SUBPATH="${GARMIN_VOICE_SUBPATH:-GARMIN/Audio/VoiceNotes}"
 NOTE_REGEX="${GARMIN_VOICE_REGEX:-VoiceNotes[0-9]+\.[Ww][Aa][Vv]}"
 MANIFEST="$DEST/.synced.tsv"
 LOG="$DEST/export.log"
-MARKER="/tmp/garmin_voice_export.session"
+PAUSE_FLAG="${GVE_PAUSE_FLAG:-$HOME/.config/garmin-voice-export/paused}"  # see bin/garmin-voice
 TMP="$(mktemp -d /tmp/gvn.XXXXXX)"
 MAX_TRIES=5
 MODE="once"; DELETE=0; NOTIFY=1
@@ -107,9 +107,12 @@ gp_get(){ local num="$1" name="$2" last=-1 cur stable=0 i
   kill -9 "$p" 2>/dev/null; kill_gp; sleep 2; [ -s "$TMP/$name" ]
 }
 
-# recording time -> filename base; fall back to export time if the note has none
-ts_name(){ local e="$1"
-  if [ "${e:-0}" -ge 1262304000 ] 2>/dev/null; then date -r "$e" '+%Y-%m-%d_%H-%M-%S'
+# recording time -> filename base, using GVE_NAME_FORMAT (a date(1) format string).
+# Examples: "%Y-%m-%d_%H-%M-%S" (default), "%Y%m%d-%H%M" (compact),
+# "%Y/%m/%Y-%m-%d_%H-%M-%S" (organised into year/month subfolders), "Memo %Y-%m-%d %H.%M".
+# Falls back to export time if the note carries no recording timestamp.
+ts_name(){ local e="$1" fmt="${GVE_NAME_FORMAT:-%Y-%m-%d_%H-%M-%S}"
+  if [ "${e:-0}" -ge 1262304000 ] 2>/dev/null; then date -r "$e" "+$fmt"
   else echo "undated_$(date '+%Y-%m-%d_%H-%M-%S')"; fi; }
 
 # a downloaded note is safe to rely on (and to delete from the watch) only if it is
@@ -195,10 +198,12 @@ do_sync(){
       if ! valid_wav "$TMP/$dev" "$kb"; then failed=$((failed+1)); log "  ! verify failed: $dev (kept on watch)"; rm -f "$TMP/$dev"; continue; fi
       local final="$DEST/$base.wav"
       if [ -e "$final" ] && [ "$(stat -f%z "$final" 2>/dev/null)" != "$(stat -f%z "$TMP/$dev")" ]; then final="$DEST/${base}_${kb}KB.wav"; fi
+      mkdir -p "$(dirname "$final")" 2>/dev/null   # GVE_NAME_FORMAT may include subfolders
       mv -f "$TMP/$dev" "$final"
       if ! valid_wav "$final" "$kb"; then failed=$((failed+1)); log "  ! post-move verify failed: $(basename "$final") (kept on watch)"; continue; fi
       saved="$(basename "$final")"
-      printf '%s\t%s\n' "$id" "$saved" >> "$MANIFEST"; new=$((new+1)); have=1
+      manifest_has "$id" || printf '%s\t%s\n' "$id" "$saved" >> "$MANIFEST"   # guard against dup lines
+      new=$((new+1)); have=1
       log "  + $saved  (from $dev, $kb KB)"
       post_process "$final"
     elif [ "$DELETE" -eq 0 ]; then
@@ -238,13 +243,14 @@ finish_notify(){ local rc="$1"
 }
 
 if [ "$MODE" = "auto" ]; then
+  # Triggered by the on-connect watcher (once per attach). Respect the pause switch;
+  # no marker bookkeeping needed since it's event-driven, not polled.
+  [ -f "$PAUSE_FLAG" ] && exit 0          # paused: leave the watch free for Garmin Express / MTP apps
   if present; then
-    [ -f "$MARKER" ] && exit 0
     sync_with_retry; rc=$?
-    [ "$rc" -ne 10 ] && touch "$MARKER"
     finish_notify "$rc"
     exit "$rc"
-  else rm -f "$MARKER"; exit 0; fi
+  else exit 0; fi                         # fired but no readable watch (e.g. a non-watch Garmin device)
 else
   log "=== manual sync ($([ "$DELETE" -eq 1 ] && echo 'export+delete' || echo 'export only')) ==="
   sync_with_retry; rc=$?

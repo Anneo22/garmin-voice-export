@@ -5,6 +5,14 @@
 # --- where memos go (optional; defaults to ~/Documents/Voice Memos) ---
 # GARMIN_VOICE_DEST="$HOME/Documents/Voice Memos"
 
+# --- filename format (a `date` format string applied to the recording time) ---
+# GVE_NAME_FORMAT="%Y-%m-%d_%H-%M-%S"          # default -> 2026-06-17_12-25-40.wav
+# GVE_NAME_FORMAT="%Y/%m/%Y-%m-%d_%H-%M-%S"    # organise into year/month subfolders
+
+# --- delete notes from the watch after a verified copy (leaves a ghost entry on
+#     the watch until it reboots; see README) ---
+# GARMIN_VOICE_DELETE=--delete
+
 # --- transcription ---
 # GVE_TRANSCRIBE=1
 # GVE_TRANSCRIBE_BACKEND=parakeet     # parakeet | whisper | openai | gemini | groq | deepgram
