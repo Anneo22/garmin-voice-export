@@ -50,7 +50,9 @@ case "${1:-status}" in
     echo "  auto-import : $([ -f "$PAUSE_FLAG" ] && echo 'PAUSED' || echo 'active')"
     if launchctl print "gui/$UID_NUM/$LABEL" >/dev/null 2>&1; then echo "  watcher     : installed (instant on-connect)"; else echo "  watcher     : not installed (run bin/install-autorun.sh)"; fi
     echo "  destination : $DEST"
-    echo "  delete-from-watch: $([ -n "${GARMIN_VOICE_DELETE:-}" ] && echo 'on' || echo 'off (export only)')"
+    plist="$HOME/Library/LaunchAgents/$LABEL.plist"
+    if [ -n "${GARMIN_VOICE_DELETE:-}" ] || grep -q -- '--delete' "$plist" 2>/dev/null; then del="on"; else del="off (export only)"; fi
+    echo "  delete-from-watch: $del"
     echo "  transcription    : $([ "${GVE_TRANSCRIBE:-0}" = 1 ] && echo "on (${GVE_TRANSCRIBE_BACKEND:-parakeet})" || echo 'off')" ;;
   -h|--help|help)
     grep '^#' "$0" | sed 's/^# \{0,1\}//' ;;
