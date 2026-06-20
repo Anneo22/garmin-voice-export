@@ -1,0 +1,15 @@
+# compiled watcher binary (built from src/ by install-autorun.sh)
+bin/garmin-usb-watcher
+*.dSYM/
+
+# transcription virtualenv (created by install-transcription.sh)
+.venv/
+
+# local config with API keys (never commit)
+config
+
+# macOS
+.DS_Store
+
+# internal hand-off journal (kept local, not published)
+CHANGES.log

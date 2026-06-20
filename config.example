@@ -1,0 +1,23 @@
+# garmin-voice-export config — copy to ~/.config/garmin-voice-export/config and edit.
+# Everything here is optional; with no config file, transcription/Obsidian stay OFF.
+# bin/install-transcription.sh writes this for you (and chmod 600, since it holds keys).
+
+# --- where memos go (optional; defaults to ~/Documents/Voice Memos) ---
+# GARMIN_VOICE_DEST="$HOME/Documents/Voice Memos"
+
+# --- transcription ---
+# GVE_TRANSCRIBE=1
+# GVE_TRANSCRIBE_BACKEND=parakeet     # parakeet | whisper | openai | gemini | groq | deepgram
+
+# local backends (installed in an isolated venv by install-transcription.sh):
+# GVE_PARAKEET_MODEL=mlx-community/parakeet-tdt-0.6b-v3
+# GVE_WHISPER_MODEL=mlx-community/whisper-large-v3-mlx
+
+# cloud backends (bring your own key):
+# GVE_OPENAI_KEY=sk-...
+# GVE_GEMINI_KEY=...
+# GVE_GROQ_KEY=...
+# GVE_DEEPGRAM_KEY=...
+
+# --- Obsidian (optional): also write each memo as a note in this vault folder ---
+# GVE_OBSIDIAN_VAULT="$HOME/Obsidian/Inbox"
