@@ -62,8 +62,9 @@ clickable notification. To remove the agent: `bin/uninstall-autorun.sh`.
 ```sh
 bin/install-menubar.sh
 ```
-Adds a menu-bar item with live status and one-click **Sync now**, **Open folder**,
-and **Pause** (free the watch for other apps).
+Adds a menu-bar item that is the control center: live status, **Sync now**, **Open
+folder**, **toggle delete-from-watch**, **change destination**, set up transcription,
+and **Pause** (free the watch for other apps). No Terminal needed for daily use.
 
 ## Usage
 

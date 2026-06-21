@@ -29,6 +29,13 @@ free_device(){
   rm -rf /tmp/garmin_voice_export.lock 2>/dev/null
 }
 
+# upsert/remove a KEY=VALUE in the config file (used by the menu-bar app + CLI)
+cfg_set(){ mkdir -p "$(dirname "$GVE_CONFIG")"; touch "$GVE_CONFIG"
+  grep -vE "^$1=" "$GVE_CONFIG" > "$GVE_CONFIG.tmp" 2>/dev/null || true; mv "$GVE_CONFIG.tmp" "$GVE_CONFIG"
+  printf "%s='%s'\n" "$1" "$2" >> "$GVE_CONFIG"; }   # single-quote so paths with spaces survive sourcing
+cfg_unset(){ [ -f "$GVE_CONFIG" ] || return 0
+  grep -vE "^$1=" "$GVE_CONFIG" > "$GVE_CONFIG.tmp" 2>/dev/null || true; mv "$GVE_CONFIG.tmp" "$GVE_CONFIG"; }
+
 case "${1:-status}" in
   pause|off|stop)
     touch "$PAUSE_FLAG"; free_device
@@ -54,7 +61,10 @@ case "${1:-status}" in
     if [ -n "${GARMIN_VOICE_DELETE:-}" ] || grep -q -- '--delete' "$plist" 2>/dev/null; then del="on"; else del="off (export only)"; fi
     echo "  delete-from-watch: $del"
     echo "  transcription    : $([ "${GVE_TRANSCRIBE:-0}" = 1 ] && echo "on (${GVE_TRANSCRIBE_BACKEND:-parakeet})" || echo 'off')" ;;
+  set)   cfg_set "$2" "$3"; echo "set $2" ;;
+  unset) cfg_unset "$2"; echo "unset $2" ;;
+  get)   [ -f "$GVE_CONFIG" ] && grep -E "^$2=" "$GVE_CONFIG" | head -1 | cut -d= -f2- | sed "s/^['\"]//; s/['\"]$//" || true ;;
   -h|--help|help)
     grep '^#' "$0" | sed 's/^# \{0,1\}//' ;;
-  *) echo "usage: garmin-voice {pause|resume|free|sync|status}" >&2; exit 2 ;;
+  *) echo "usage: garmin-voice {pause|resume|free|sync|status|set KEY VAL|unset KEY}" >&2; exit 2 ;;
 esac

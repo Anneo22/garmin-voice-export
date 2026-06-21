@@ -39,7 +39,6 @@ cat > "$PLIST" <<PL
   <key>ProgramArguments</key><array><string>$BIN</string></array>
   <key>EnvironmentVariables</key><dict>
     <key>GVE_CTL</key><string>$CTL</string>
-    <key>GVE_DEST</key><string>$DEST</string>
   </dict>
   <key>RunAtLoad</key><true/>
 </dict></plist>

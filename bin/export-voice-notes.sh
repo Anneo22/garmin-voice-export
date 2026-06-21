@@ -45,6 +45,7 @@ PAUSE_FLAG="${GVE_PAUSE_FLAG:-$HOME/.config/garmin-voice-export/paused}"  # see 
 TMP="$(mktemp -d /tmp/gvn.XXXXXX)"
 MAX_TRIES=5
 MODE="once"; DELETE=0; NOTIFY=1
+[ -n "${GARMIN_VOICE_DELETE:-}" ] && DELETE=1     # config/env default; CLI flags below override
 for a in "$@"; do case "$a" in
   --auto) MODE="auto" ;; --delete) DELETE=1 ;; --keep) DELETE=0 ;; --no-notify) NOTIFY=0 ;;
 esac; done

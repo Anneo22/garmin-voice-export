@@ -35,6 +35,12 @@ fi
 launchctl bootout "gui/$UID_NUM/$OLD_POLLER" 2>/dev/null || true
 rm -f "$HOME/Library/LaunchAgents/$OLD_POLLER.plist" 2>/dev/null || true
 
+# Settings live in the config the importer reads, so the menu-bar app can change them
+# live without reinstalling. The plist stays minimal (just runs the importer).
+"$HERE/garmin-voice" set GARMIN_VOICE_DEST "$DEST" >/dev/null
+if [ -n "$DELETE_FLAG" ]; then "$HERE/garmin-voice" set GARMIN_VOICE_DELETE "--delete" >/dev/null
+else "$HERE/garmin-voice" unset GARMIN_VOICE_DELETE >/dev/null; fi
+
 cat > "$PLIST" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -45,12 +51,8 @@ cat > "$PLIST" <<PLIST
   <array>
     <string>$WATCHER_BIN</string>
     <string>$EXPORT</string>
-    <string>--auto</string>$( [ -n "$DELETE_FLAG" ] && printf '\n    <string>%s</string>' "$DELETE_FLAG" )
+    <string>--auto</string>
   </array>
-  <key>EnvironmentVariables</key>
-  <dict>
-    <key>GARMIN_VOICE_DEST</key><string>$DEST</string>
-  </dict>
   <key>KeepAlive</key>        <true/>
   <key>RunAtLoad</key>        <true/>
   <key>ProcessType</key>      <string>Background</string>
@@ -69,6 +71,6 @@ echo
 echo "Installed the instant on-connect watcher."
 echo "  Trigger: fires within a few seconds of plugging in a Garmin watch"
 echo "  Dest:    $DEST"
-echo "  Delete:  ${DELETE_FLAG:-off (export only)}   (set GARMIN_VOICE_DELETE=--delete to enable)"
+echo "  Delete:  $([ -n "$DELETE_FLAG" ] && echo on || echo 'off (export only)')   (toggle from the menu-bar app)"
 echo "  Logs:    tail -f '$DEST/export.log'   |   $LOGDIR/garmin-voice-export.err.log"
 echo "  Remove:  $HERE/uninstall-autorun.sh"

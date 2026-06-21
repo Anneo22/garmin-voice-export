@@ -1,14 +1,12 @@
-// garmin-voice-menubar.swift — a lightweight macOS menu-bar control for the importer.
-// Shows status and offers Sync now / Open folder / Pause-Resume / Quit. All actions
-// shell out to the `garmin-voice` control script (path from env GVE_CTL).
+// garmin-voice-menubar.swift — menu-bar control + settings for the importer.
+// Everything is adjusted here; all state lives in the config the `garmin-voice`
+// script reads/writes (path from env GVE_CTL). No Terminal needed for daily use.
 //
 // Build:  swiftc -O garmin-voice-menubar.swift -o garmin-voice-menubar
-// Run as a LoginItem/LaunchAgent with GVE_CTL and GVE_DEST set (see install-menubar.sh).
 
 import Cocoa
 
-let CTL  = ProcessInfo.processInfo.environment["GVE_CTL"]  ?? "garmin-voice"
-let DEST = ProcessInfo.processInfo.environment["GVE_DEST"] ?? "\(NSHomeDirectory())/Documents/Voice Memos"
+let CTL = ProcessInfo.processInfo.environment["GVE_CTL"] ?? "garmin-voice"
 
 @discardableResult
 func ctl(_ args: [String]) -> String {
@@ -21,52 +19,81 @@ func ctl(_ args: [String]) -> String {
     return String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
 }
 
+func statusField(_ s: String, _ key: String) -> String {
+    for line in s.split(separator: "\n") where line.contains(key) {
+        if let r = line.range(of: ":") { return line[r.upperBound...].trimmingCharacters(in: .whitespaces) }
+    }
+    return ""
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let menu = NSMenu()
+    var dest = ""
 
     func applicationDidFinishLaunching(_ n: Notification) {
-        if let b = item.button {
-            b.image = NSImage(systemSymbolName: "waveform.circle", accessibilityDescription: "Garmin Voice Memos")
-        }
+        item.button?.image = NSImage(systemSymbolName: "waveform.circle", accessibilityDescription: "Garmin Voice Memos")
         menu.delegate = self
         item.menu = menu
     }
 
-    // rebuild each time it opens so status is live
     func menuNeedsUpdate(_ m: NSMenu) {
+        let s = ctl(["status"])
+        let paused  = statusField(s, "auto-import").contains("PAUSED")
+        let deleting = statusField(s, "delete-from-watch").hasPrefix("on")
+        let transOn = statusField(s, "transcription").hasPrefix("on")
+        dest = statusField(s, "destination")
+
         m.removeAllItems()
-        let status = ctl(["status"])
-        let paused = status.contains("PAUSED")
-        m.addItem(header("Garmin Voice Memos"))
-        m.addItem(info(paused ? "Auto-import: paused" : "Auto-import: active"))
-        for line in ["destination", "delete-from-watch", "transcription"] {
-            if let l = status.split(separator: "\n").first(where: { $0.contains(line) }) {
-                m.addItem(info(l.trimmingCharacters(in: .whitespaces)))
-            }
-        }
+        m.addItem(disabled("Garmin Voice Memos"))
+        m.addItem(disabled("  " + (paused ? "Paused" : "Active") + (dest.isEmpty ? "" : " · " + (dest as NSString).lastPathComponent)))
         m.addItem(.separator())
         m.addItem(action("Sync now", #selector(syncNow)))
-        m.addItem(action("Open Voice Memos folder", #selector(openFolder)))
+        m.addItem(action("Open folder", #selector(openFolder)))
+        m.addItem(.separator())
+        m.addItem(check("Delete from watch after import", deleting, #selector(toggleDelete)))
+        m.addItem(action("Change destination…", #selector(changeDest)))
+        m.addItem(check("Transcribe memos", transOn, #selector(setupTranscription)))
+        m.addItem(.separator())
         m.addItem(action(paused ? "Resume auto-import" : "Pause (free watch for other apps)",
                          paused ? #selector(resume) : #selector(pause)))
-        m.addItem(.separator())
         m.addItem(action("Quit", #selector(quit)))
     }
 
-    func header(_ s: String) -> NSMenuItem { let i = NSMenuItem(title: s, action: nil, keyEquivalent: ""); i.isEnabled = false; return i }
-    func info(_ s: String) -> NSMenuItem { let i = NSMenuItem(title: "  \(s)", action: nil, keyEquivalent: ""); i.isEnabled = false; return i }
-    func action(_ s: String, _ sel: Selector) -> NSMenuItem { let i = NSMenuItem(title: s, action: sel, keyEquivalent: ""); i.target = self; return i }
+    func disabled(_ t: String) -> NSMenuItem { let i = NSMenuItem(title: t, action: nil, keyEquivalent: ""); i.isEnabled = false; return i }
+    func action(_ t: String, _ sel: Selector) -> NSMenuItem { let i = NSMenuItem(title: t, action: sel, keyEquivalent: ""); i.target = self; return i }
+    func check(_ t: String, _ on: Bool, _ sel: Selector) -> NSMenuItem { let i = action(t, sel); i.state = on ? .on : .off; return i }
 
-    @objc func syncNow()    { DispatchQueue.global().async { ctl(["sync"]) } }
-    @objc func openFolder() { NSWorkspace.shared.open(URL(fileURLWithPath: DEST)) }
-    @objc func pause()      { ctl(["pause"]) }
-    @objc func resume()     { ctl(["resume"]) }
-    @objc func quit()       { NSApp.terminate(nil) }
+    @objc func syncNow()  { DispatchQueue.global().async { ctl(["sync"]) } }
+    @objc func openFolder(){ if !dest.isEmpty { NSWorkspace.shared.open(URL(fileURLWithPath: dest)) } }
+    @objc func pause()    { ctl(["pause"]) }
+    @objc func resume()   { ctl(["resume"]) }
+    @objc func quit()     { NSApp.terminate(nil) }
+
+    @objc func toggleDelete() {
+        let on = statusField(ctl(["status"]), "delete-from-watch").hasPrefix("on")
+        if on { ctl(["unset", "GARMIN_VOICE_DELETE"]) } else { ctl(["set", "GARMIN_VOICE_DELETE", "--delete"]) }
+    }
+
+    @objc func changeDest() {
+        NSApp.activate(ignoringOtherApps: true)
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.canCreateDirectories = true
+        panel.prompt = "Use this folder"; panel.message = "Where should voice memos be saved?"
+        if panel.runModal() == .OK, let url = panel.url { ctl(["set", "GARMIN_VOICE_DEST", url.path]) }
+    }
+
+    @objc func setupTranscription() {
+        let dir = (CTL as NSString).deletingLastPathComponent
+        let script = "\(dir)/install-transcription.sh"
+        let p = Process(); p.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        p.arguments = ["-e", "tell application \"Terminal\" to do script \"bash '\(script)'\"", "-e", "tell application \"Terminal\" to activate"]
+        try? p.run()
+    }
 }
 
 let app = NSApplication.shared
-app.setActivationPolicy(.accessory)   // menu-bar only, no Dock icon
+app.setActivationPolicy(.accessory)
 let delegate = AppDelegate()
 app.delegate = delegate
 app.run()
