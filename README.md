@@ -18,6 +18,23 @@ that is famously flaky on a Mac. This tool makes it reliable and hands-off.
 - **Optional Obsidian output** — write each memo as a note in your vault.
 - **Self-diagnosing** — a diagnostic that tells you whether a failure is the cable or the software.
 
+## Why it works when Android File Transfer / OpenMTP don't
+
+Those tools open the watch as a **full MTP volume** and enumerate everything — and a
+modern Garmin holds thousands of map tiles. That full recursive scan is exactly what
+hangs and crashes. This tool never does that:
+
+- **Targeted reads, not a full mount.** It reads *one folder by path* with `gphoto2`
+  and pulls only what changed — a handful of PTP commands, never a device-wide scan.
+- **Clears contention first.** Garmin Express and the macOS `PTPCamera` daemon both
+  grab the watch's single USB interface; the tool quietly steps them aside.
+- **Never hard-kills a live session.** It lets MTP close cleanly, so it doesn't wedge
+  the watch into the "not recognised" state.
+- **Self-healing.** Transient failures are retried and recovered, not crashed on.
+
+Targeted, contention-aware, self-healing access — not mount-and-pray. The same engine
+generalizes to activities and anything else on the watch.
+
 ## Requirements
 
 - macOS (Apple Silicon or Intel)
