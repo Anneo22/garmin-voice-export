@@ -66,9 +66,11 @@ clickable notification. To remove the agent: `bin/uninstall-autorun.sh`.
 ```sh
 bin/install-menubar.sh
 ```
-Adds a menu-bar item that is the control center: live status, **Sync now**, **Open
-folder**, **toggle delete-from-watch**, **change destination**, set up transcription,
-and **Pause** (free the watch for other apps). No Terminal needed for daily use.
+Adds a menu-bar item that is the control center: live status, **import voice notes**,
+**back up activities**, **open the folder**, choose when to **remove notes from the watch**,
+set **local audio** retention, **change the folder**, and **Pause** to free the watch for
+other apps. Transcription is fully controllable here too: turn it on with an on-device model
+or a cloud key (entered in a native dialog), and toggle transcript cleanup, with no Terminal.
 
 ## Usage
 

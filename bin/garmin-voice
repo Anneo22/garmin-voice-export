@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# garmin-voice — control the auto-importer and free the watch for other apps.
+# garminbridge, control the bridge and free the watch for other apps.
+# (This script is also installed as 'garmin-voice', a legacy alias; same commands.)
 #
-#   garmin-voice pause     turn auto-import OFF and release the watch (for Garmin
-#                          Express, OpenMTP, etc.). Survives reconnects until 'resume'.
-#   garmin-voice resume    turn auto-import back ON.
-#   garmin-voice free       release the watch from this tool + macOS PTPCamera RIGHT NOW
-#                          (one-shot; doesn't change pause state). Use when "the Mac
-#                          won't see the watch" — run this, then open your app.
-#   garmin-voice sync [...] run a voice-note import now (passes flags like --delete).
-#   garmin-voice activities [...] back up activity .fit files now (copy-only).
-#   garmin-voice status    show current state.
+#   garminbridge voice        import voice notes now (alias: sync). Passes flags like --delete.
+#   garminbridge activities   back up activity .fit files now (copy-only).
+#   garminbridge pause        turn auto-import OFF and release the watch (for Garmin
+#                             Express, OpenMTP, etc.). Survives reconnects until 'resume'.
+#   garminbridge resume       turn auto-import back ON.
+#   garminbridge free         release the watch from this tool and macOS PTPCamera right now
+#                             (one-shot). Use when "the Mac won't see the watch", then open your app.
+#   garminbridge status       show current state.
 
 set -uo pipefail
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -53,7 +53,7 @@ case "${1:-status}" in
     echo "✓  Released the watch from this tool and macOS PTPCamera."
     echo "   Open Garmin Express / your MTP app now — it should connect."
     echo "   (One-shot. To keep it free across reconnects use:  garmin-voice pause)" ;;
-  sync|now)
+  voice|import|sync|now)
     shift; free_device; sleep 1; exec "$EXPORT" "$@" ;;
   activities|backup)
     shift; free_device; sleep 1; exec "$ACTIVITIES" "$@" ;;
@@ -77,5 +77,5 @@ case "${1:-status}" in
   get)   [ -f "$GVE_CONFIG" ] && grep -E "^$2=" "$GVE_CONFIG" | head -1 | cut -d= -f2- | sed "s/^['\"]//; s/['\"]$//" || true ;;
   -h|--help|help)
     grep '^#' "$0" | grep -v '^#!' | sed 's/^# \{0,1\}//' ;;
-  *) echo "usage: garmin-voice {pause|resume|free|sync|activities|status|set KEY VAL|unset KEY}" >&2; exit 2 ;;
+  *) echo "usage: garminbridge {status|voice|activities|pause|resume|free|set KEY VAL|unset KEY}" >&2; exit 2 ;;
 esac
