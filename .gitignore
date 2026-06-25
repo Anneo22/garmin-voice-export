@@ -16,3 +16,10 @@ CHANGES.log
 
 # menu-bar app bundle (built by install-menubar.sh)
 GarminBridge.app/
+
+# local project handoff (carries the publishing rule + internal notes; never publish)
+HANDOFF.md
+
+# internal one-shot recon tooling + its output (never publish)
+recon-garmin-fs.sh
+recon.out
