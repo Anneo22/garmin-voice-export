@@ -4,6 +4,7 @@
 #
 #   garminbridge voice        import voice notes now (alias: sync). Passes flags like --delete.
 #   garminbridge activities   back up activity .fit files now (copy-only).
+#   garminbridge settings     back up settings + sport profiles now (copy-only; for restoring a new watch).
 #   garminbridge pause        turn auto-import OFF and release the watch (for Garmin
 #                             Express, OpenMTP, etc.). Survives reconnects until 'resume'.
 #   garminbridge resume       turn auto-import back ON.
@@ -20,6 +21,7 @@ set -uo pipefail
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 EXPORT="$SELF_DIR/export-voice-notes.sh"
 ACTIVITIES="$SELF_DIR/backup-activities.sh"
+SETTINGS_BK="$SELF_DIR/backup-settings.sh"
 LABEL="com.garminvoice.watcher"
 UID_NUM="$(id -u)"
 PAUSE_FLAG="${GVE_PAUSE_FLAG:-$HOME/.config/garmin-voice-export/paused}"
@@ -28,6 +30,7 @@ GVE_CONFIG="${GVE_CONFIG:-$HOME/.config/garmin-voice-export/config}"
 . "$SELF_DIR/gve-paths.sh"; gve_resolve_paths      # organised "Garmin Bridge" root (legacy default if unset)
 DEST="$GVE_VOICE_DEST"
 ACT_DEST="$GVE_ACT_DEST"
+SET_DEST="$GVE_SET_DEST"
 mkdir -p "$(dirname "$PAUSE_FLAG")"
 
 # release every process that holds the watch's single USB interface
@@ -83,6 +86,8 @@ case "${1:-status}" in
     shift; free_device; sleep 1; exec "$EXPORT" "$@" ;;
   activities|backup)
     shift; free_device; sleep 1; exec "$ACTIVITIES" "$@" ;;
+  settings|profiles)
+    shift; free_device; sleep 1; exec "$SETTINGS_BK" "$@" ;;
   root)
     if [ -z "${2:-}" ]; then echo "${GARMIN_BRIDGE_ROOT:-(unset — using the legacy ~/Documents layout)}"; exit 0; fi
     cfg_set GARMIN_BRIDGE_ROOT "$2"
@@ -119,11 +124,12 @@ case "${1:-status}" in
     echo "  local retention   : $([ -n "${GVE_AUDIO_RETENTION_DAYS:-}" ] && echo "drop audio after ${GVE_AUDIO_RETENTION_DAYS}d, keep transcript" || echo 'keep audio')"
     echo "  transcription     : $([ "${GVE_TRANSCRIBE:-0}" = 1 ] && echo "on (${GVE_TRANSCRIBE_BACKEND:-parakeet})" || echo 'off')"
     echo "  transcript cleanup: $([ "${GVE_TRANSCRIPT_CLEANUP:-0}" = 1 ] && echo "on (${GVE_CLEANUP_BACKEND:-openai})" || echo 'off')"
-    echo "  activity backup   : $([ "${GARMIN_ACTIVITY_BACKUP:-0}" = 1 ] && echo "on -> $ACT_DEST" || echo 'off')" ;;
+    echo "  activity backup   : $([ "${GARMIN_ACTIVITY_BACKUP:-0}" = 1 ] && echo "on -> $ACT_DEST" || echo 'off')"
+    echo "  settings backup   : $([ "${GARMIN_SETTINGS_BACKUP:-0}" = 1 ] && echo "on -> $SET_DEST" || echo 'off')" ;;
   set)   cfg_set "$2" "$3"; echo "set $2" ;;
   unset) cfg_unset "$2"; echo "unset $2" ;;
   get)   [ -f "$GVE_CONFIG" ] && grep -E "^$2=" "$GVE_CONFIG" | head -1 | cut -d= -f2- | sed "s/^['\"]//; s/['\"]$//" || true ;;
   -h|--help|help)
     grep '^#' "$0" | grep -v '^#!' | sed 's/^# \{0,1\}//' ;;
-  *) echo "usage: garminbridge {status|voice|activities|pause|resume|free|root [PATH]|device [NAME]|migrate|set KEY VAL|unset KEY}" >&2; exit 2 ;;
+  *) echo "usage: garminbridge {status|voice|activities|settings|pause|resume|free|root [PATH]|device [NAME]|migrate|set KEY VAL|unset KEY}" >&2; exit 2 ;;
 esac

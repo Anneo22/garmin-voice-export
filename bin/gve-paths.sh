@@ -27,4 +27,9 @@ gve_resolve_paths(){
   if [ -n "${GARMIN_ACTIVITY_DEST:-}" ]; then GVE_ACT_DEST="$GARMIN_ACTIVITY_DEST"
   elif [ -n "$base" ];                   then GVE_ACT_DEST="$base/Backups"
   else                                        GVE_ACT_DEST="$HOME/Documents/Garmin Activities"; fi
+
+  # settings/profile backup (sport faces, device settings, the device's own backup blob, etc.)
+  if [ -n "${GARMIN_SETTINGS_DEST:-}" ]; then GVE_SET_DEST="$GARMIN_SETTINGS_DEST"
+  elif [ -n "$base" ];                    then GVE_SET_DEST="$base/Settings"
+  else                                         GVE_SET_DEST="$HOME/Documents/Garmin Settings"; fi
 }

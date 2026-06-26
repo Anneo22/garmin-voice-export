@@ -95,6 +95,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         m.addItem(.separator())
         m.addItem(action("Import voice notes now", #selector(importVoice)))
         m.addItem(action("Back up activities now", #selector(backupActivities)))
+        m.addItem(action("Back up settings & profiles now", #selector(backupSettings)))
         m.addItem(action("Open voice memos folder", #selector(openFolder)))
         m.addItem(.separator())
 
@@ -162,6 +163,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc func importVoice()      { DispatchQueue.global().async { ctl(["sync"]) } }
     @objc func backupActivities() { DispatchQueue.global().async { ctl(["activities"]) } }
+    @objc func backupSettings()   { DispatchQueue.global().async { ctl(["settings"]) } }
     @objc func openFolder()       { if !dest.isEmpty { NSWorkspace.shared.open(URL(fileURLWithPath: dest)) } }
     @objc func pause()  { ctl(["pause"]) }
     @objc func resume() { ctl(["resume"]) }

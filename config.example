@@ -34,6 +34,14 @@
 # GARMIN_ACTIVITY_DEST="$HOME/Documents/Garmin Activities"
 # GARMIN_ACTIVITY_MAX=0                # max files per run (0 = all; bound a huge first backup)
 
+# --- settings + sport-profile backup: copy the per-sport profiles (the data-screen
+#     "faces"), device settings, and the watch's own settings backup blob to the Mac on
+#     connect (copy-only). Lets a new/upgraded watch be set back up the way you had it.
+#     Goes to <root>/Settings (or ~/Documents/Garmin Settings when no root is set). ---
+# GARMIN_SETTINGS_BACKUP=1
+# GARMIN_SETTINGS_DEST="$HOME/Documents/Garmin Settings"
+# GARMIN_BACKUP_CONTENT=1              # also mirror Courses + Workouts
+
 # --- transcription ---
 # GVE_TRANSCRIBE=1
 # GVE_TRANSCRIBE_BACKEND=parakeet     # parakeet | whisper | openai | gemini | groq | deepgram

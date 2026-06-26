@@ -160,13 +160,12 @@ gp_get(){ local num="$1" name="$2" last=-1 cur stable=0 i
 # lets a multi-note backlog drain in a single connection. Deletes stay OUT of this pass.
 gp_get_all(){
   [ "$#" -gt 0 ] || return 0
-  rm -f "$TMP"/VoiceNotes*.wav 2>/dev/null            # avoid gphoto2's overwrite prompt on a retry
-  local args=() n; for n in "$@"; do args+=(--get-file "$n"); done
+  local args=() n; for n in "$@"; do args+=(--get-file "$n"); done   # caller keeps $TMP clean
   killall PTPCamera 2>/dev/null
   ( cd "$TMP" && gphoto2 --folder "$VF" "${args[@]}" >"$TMP/getall.out" 2>&1 ) & local p=$! i prev=0 cur stalls=0
   for i in $(seq 1 300); do                            # patient: the watch is slow over USB
     kill -0 "$p" 2>/dev/null || break
-    cur="$(find "$TMP" -name 'VoiceNotes*.wav' -exec stat -f%z {} + 2>/dev/null | awk '{s+=$1} END{print s+0}')"
+    cur="$(du -sk "$TMP" 2>/dev/null | awk '{print $1}')"   # total pulled so far (any file type)
     if [ "$cur" = "$prev" ]; then stalls=$((stalls+1)); else stalls=0; fi
     [ "$stalls" -ge 25 ] && break                      # ~25s with no new bytes -> stuck, stop waiting
     prev="$cur"; sleep 1
