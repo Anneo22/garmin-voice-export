@@ -23,3 +23,6 @@ HANDOFF.md
 # internal one-shot recon tooling + its output (never publish)
 recon-garmin-fs.sh
 recon.out
+
+# Phase 1 Connect prototype (venv, tokens, never publish)
+prototype/
