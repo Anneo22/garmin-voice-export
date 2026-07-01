@@ -308,6 +308,7 @@ function el(tag, props = {}, kids = []) {
   for (const [k, v] of Object.entries(props)) {
     if (k === "class") n.className = v;
     else if (k === "text") n.textContent = v;
+    else if (k === "style") n.style.cssText = v; // CSSOM, so the CSP needs no unsafe-inline
     else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
     else if (v === true) n.setAttribute(k, "");
     else if (v !== false && v != null) n.setAttribute(k, v);
@@ -884,7 +885,10 @@ function showScan(text) {
 function hideScan() { $("scan").hidden = true; $("refresh-btn").classList.remove("refreshing"); }
 
 function segActive(groupId, btn) {
-  for (const b of $(groupId).querySelectorAll(".seg-btn")) b.classList.toggle("is-active", b === btn);
+  for (const b of $(groupId).querySelectorAll(".seg-btn")) {
+    b.classList.toggle("is-active", b === btn);
+    b.setAttribute("aria-pressed", String(b === btn));
+  }
 }
 
 window.addEventListener("DOMContentLoaded", () => {

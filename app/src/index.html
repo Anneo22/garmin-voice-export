@@ -52,17 +52,17 @@
           <span class="ico" data-icon="search"></span>
           <input id="search" class="search" type="search" placeholder="Search workouts, routes and places" />
         </div>
-        <div class="seg" id="filter-loc" role="tablist">
-          <button class="seg-btn is-active" data-loc="on-watch">On my watch</button>
-          <button class="seg-btn" data-loc="all">All</button>
-          <button class="seg-btn" data-loc="connect-only">Connect only</button>
-          <button class="seg-btn" data-loc="watch-only">Watch only</button>
+        <div class="seg" id="filter-loc" role="group" aria-label="Filter by where items live">
+          <button class="seg-btn is-active" aria-pressed="true" data-loc="on-watch">On my watch</button>
+          <button class="seg-btn" aria-pressed="false" data-loc="all">All</button>
+          <button class="seg-btn" aria-pressed="false" data-loc="connect-only">Connect only</button>
+          <button class="seg-btn" aria-pressed="false" data-loc="watch-only">Watch only</button>
         </div>
-        <div class="seg" id="filter-kind">
-          <button class="seg-btn is-active" data-kind="all">All</button>
-          <button class="seg-btn" data-kind="workout">Workouts</button>
-          <button class="seg-btn" data-kind="course">Routes</button>
-          <button class="seg-btn" data-kind="location">Places</button>
+        <div class="seg" id="filter-kind" role="group" aria-label="Filter by kind">
+          <button class="seg-btn is-active" aria-pressed="true" data-kind="all">All</button>
+          <button class="seg-btn" aria-pressed="false" data-kind="workout">Workouts</button>
+          <button class="seg-btn" aria-pressed="false" data-kind="course">Routes</button>
+          <button class="seg-btn" aria-pressed="false" data-kind="location">Places</button>
         </div>
         <select id="filter-sport" class="sport-select" title="Filter by sport">
           <option value="">All sports</option>
