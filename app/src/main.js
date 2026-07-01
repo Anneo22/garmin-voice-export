@@ -335,16 +335,16 @@ function dinkus() {
     </svg>`)]);
 }
 function illoEmpty() {
-  // the brand bridge at illustration scale: watch and Mac anchors, a dashed span (nothing flowing),
-  // the teal data-node at the apex.
+  // the brand mark at illustration scale: the clean bridge arch (a quiet ink stroke) with the
+  // single faded hot-coral node at the apex. Same language as the masthead logo, so an empty
+  // screen still reads as GarminBridge. (The earlier literal watch+Mac rebus was dropped.)
   return svgEl(`
-    <svg class="illo" viewBox="0 0 140 100" fill="none" stroke="currentColor" stroke-width="1.6">
-      <g opacity=".7">
-        <circle cx="28" cy="74" r="9"/>
-        <rect x="96" y="63" width="20" height="17" rx="3"/>
-      </g>
-      <path d="M28 74 C28 33 44 21 70 21 C96 21 112 33 112 74" stroke-dasharray="3 6.5" stroke-linecap="round"/>
-      <circle class="node" cx="70" cy="21" r="7"/>
+    <svg class="illo" viewBox="0 0 140 100" fill="none">
+      <path d="M20 84 C20 40 43 26 70 26 C97 26 120 40 120 84" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round"/>
+      <circle class="node-h1" cx="70" cy="26" r="15"/>
+      <circle class="node-h2" cx="70" cy="26" r="10.6"/>
+      <circle class="node" cx="70" cy="26" r="6.4"/>
     </svg>`);
 }
 

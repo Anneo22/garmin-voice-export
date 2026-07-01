@@ -15,12 +15,12 @@
 :root {
   --bg: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f2f3f4;
+  --surface-2: #f2f2f2;
   --ink: #1a1a1a;
   --ink-2: #555555;
-  --ink-3: #8a8f96;        /* muted */
+  --ink-3: #6f6f6f;        /* muted, meets AA on white for small text */
   --line: #dddddd;         /* Stafforini hairline */
-  --line-2: #cbced2;
+  --line-2: #cccccc;
   --accent: #e23742;       /* deepened hot coral, readable on white */
   --accent-pop: #fd4e5a;   /* the brand vivid hot coral */
   --accent-soft: rgba(253, 78, 90, .12);
@@ -28,6 +28,9 @@
   --accent-2-soft: rgba(36, 38, 224, .10);
   --danger: #b01526;
   --danger-soft: rgba(176, 21, 38, .10);
+  --danger-line: rgba(176, 21, 38, .28);   /* danger hairline, tracks --danger */
+  --danger-hover: #8f1220;                  /* danger button pressed-in, deepened */
+  --danger-text: #b01526;                   /* danger AS small text on a plain bg (AA on white) */
 
   --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
   --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
@@ -89,9 +92,9 @@ button { font-family: inherit; color: inherit; }
 .btn:active { transform: scale(.975); }
 .btn[disabled] { opacity: .4; cursor: not-allowed; }
 .btn-primary { background: var(--ink); border-color: var(--ink); color: var(--surface); }
-.btn-primary:hover { background: #2a3338; border-color: #2a3338; }
+.btn-primary:hover { background: #333333; border-color: #333333; }
 .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
-.btn-danger:hover { background: #b93232; border-color: #b93232; }
+.btn-danger:hover { background: var(--danger-hover); border-color: var(--danger-hover); }
 .btn-ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
 .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
 .refreshing .ico-spin { animation: spin .9s linear infinite; }
@@ -148,7 +151,7 @@ button { font-family: inherit; color: inherit; }
 .row:hover { background: var(--surface); }
 .row.is-selected { background: var(--accent-soft); }
 
-/* quiet per-row rename affordance: appears on hover, teal on hover-of-itself */
+/* quiet per-row rename affordance: appears on hover, coral on hover-of-itself */
 .row-rename { border: none; background: transparent; color: var(--ink-3); cursor: pointer;
   display: inline-flex; padding: 4px; border-radius: 7px; opacity: 0; transition: opacity .12s, color .12s, background .12s; }
 .row:hover .row-rename { opacity: .8; }
@@ -190,7 +193,7 @@ button { font-family: inherit; color: inherit; }
 .route-prof-line { fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-linejoin: round;
   stroke-linecap: round; vector-effect: non-scaling-stroke; }
 /* wind detail in the hover preview: speed + where it blows from, then the verdict
-   sentence; teal only when the wind is a tailwind for the ride home */
+   sentence; Klein only when the wind is a tailwind for the ride home */
 .route-wind-line { display: flex; align-items: flex-start; gap: 8px; margin-top: 11px; padding-top: 10px;
   border-top: 1px solid var(--line); font-family: var(--mono); font-size: 11.5px; }
 .route-wind-line .ico { font-size: 15px; color: var(--ink-3); flex: none; margin-top: 1px; }
@@ -212,7 +215,7 @@ button { font-family: inherit; color: inherit; }
 .row-metrics .ico { font-size: 11px; color: var(--ink-3); }
 .route-dir { gap: 4px; color: var(--ink); }
 .dir-glyph { color: var(--ink); font-weight: 700; }
-/* forecast wind verdict on the row: teal reserved for the good case (tailwind home),
+/* forecast wind verdict on the row: Klein reserved for the good case (tailwind home),
    muted otherwise, so a glance tells you if the wind favours the ride back */
 .route-wind { gap: 4px; color: var(--ink-2); }
 .route-wind .ico { color: inherit; }
@@ -246,7 +249,7 @@ button { font-family: inherit; color: inherit; }
 .locchip { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
   color: var(--ink-3); min-width: 100px; text-align: right; }
 .locchip.is-synced { color: var(--accent); }
-.locchip.is-stale { color: var(--danger); }
+.locchip.is-stale { color: var(--danger-text); }
 
 /* saved points ("Places"): name + coordinates, rename + delete. Own grid (no checkbox,
    no Connect/Watch badges, no loc chip); the pin sits in the same 74px identity column so it
@@ -274,8 +277,10 @@ button { font-family: inherit; color: inherit; }
 /* empty state with a Visualize-Value line illustration */
 .empty { display: flex; flex-direction: column; align-items: center; gap: 17px; text-align: center;
   padding: 72px 20px; color: var(--ink-3); }
-.empty .illo { width: 140px; height: 100px; color: var(--ink-2); }
+.empty .illo { width: 140px; height: 100px; color: var(--ink-3); }
 .empty .illo .node { fill: var(--accent-pop); stroke: none; }
+.empty .illo .node-h1 { fill: var(--accent-pop); stroke: none; opacity: .13; }
+.empty .illo .node-h2 { fill: var(--accent-pop); stroke: none; opacity: .26; }
 .empty-title { font-family: var(--serif); font-size: 21px; font-weight: 600; color: var(--ink); font-style: italic; }
 .empty-sub { font-family: var(--mono); font-size: 12.5px; max-width: 330px; line-height: 1.6; }
 
@@ -308,12 +313,15 @@ button { font-family: inherit; color: inherit; }
   padding: 11px 13px; }
 .rename-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .rename-note { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); margin-top: 9px; min-height: 16px; letter-spacing: .02em; }
-.rename-note.warn { color: var(--danger); }
+.rename-note.warn { color: var(--danger-text); }
 .modal-warn { margin-top: 15px; padding: 12px 14px; border-radius: var(--r); font-size: 13.5px;
   display: flex; gap: 9px; align-items: flex-start; line-height: 1.45; }
 .modal-warn .ico { font-size: 16px; flex: none; margin-top: 2px; }
 .modal-warn.reversible { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
-.modal-warn.permanent { background: var(--danger-soft); color: var(--danger); border: 1px solid rgba(207,59,59,.28); }
+/* permanent warn: red-tinted danger callout, but the body text stays high-contrast ink so the
+   "no undo" message is fully legible; the danger reads from the red frame + red alert icon. */
+.modal-warn.permanent { background: var(--danger-soft); color: var(--ink); border: 1px solid var(--danger-line); }
+.modal-warn.permanent .ico { color: var(--danger-text); }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
 
 /* ---------- toast + scan ---------- */
@@ -336,14 +344,17 @@ button { font-family: inherit; color: inherit; }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #1a1a1a; --surface: #212121; --surface-2: #262626; --ink: #d4d4d4; --ink-2: #999999;
-    --ink-3: #7d7d7d; --line: #333333; --line-2: #3d3d3d; --accent: #fd4e5a; --accent-pop: #fd4e5a;
+    --ink-3: #868686; --line: #333333; --line-2: #3d3d3d; --accent: #fd4e5a; --accent-pop: #fd4e5a;
     --accent-soft: rgba(253,78,90,.16); --accent-2: #5a5cf5; --accent-2-soft: rgba(90,92,245,.20);
     --danger: #d9434e; --danger-soft: rgba(217,67,78,.16);
+    --danger-line: rgba(217,67,78,.35); --danger-hover: #c62230; --danger-text: #e5636c;
     --shadow: 0 1px 1px rgba(0,0,0,.5), 0 16px 44px rgba(0,0,0,.6);
   }
   .btn-primary { background: var(--ink); border-color: var(--ink); color: #1a1a1a; }
   .btn-primary:hover { background: #eaeaea; border-color: #eaeaea; }
-  .badge.on { color: #1a1a1a; }
-  .badge.on:hover:not([disabled]) { color: #40161a; }
+  /* "on" badge: a filled pill reads as "present". On the dark base a full #d4d4d4 fill
+     glares brighter than the coral accent, so calm it to a mid grey that still fills clearly. */
+  .badge.on { background: #9e9e9e; border-color: #9e9e9e; color: #1a1a1a; }
+  .badge.on:hover:not([disabled]) { background: var(--accent-pop); border-color: var(--accent-pop); color: #40161a; }
   .scan { background: rgba(26,26,26,.84); }
 }
